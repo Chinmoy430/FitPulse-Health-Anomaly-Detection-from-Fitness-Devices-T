@@ -66,7 +66,7 @@ FitPulse-Health-Anomaly-Detection-from-Fitness-Devices-T/
 │   └── LICENSE
 │
 └── README.md
-
+```
 
 ## Technology Stack
 
