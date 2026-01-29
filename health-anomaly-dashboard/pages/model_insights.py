@@ -5,7 +5,7 @@ import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
 
-st.title("📊 Model Insights (Module 2)")
+st.title("📊 Model Insights ")
 
 if st.session_state.get("module2_out") is None:
     st.warning("Run pipeline from Home page first.")

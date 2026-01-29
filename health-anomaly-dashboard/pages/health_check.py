@@ -1,3 +1,6 @@
+from utils.ui import load_premium_css
+load_premium_css()
+
 import streamlit as st
 
 st.title("🩺 Are You Healthy?")

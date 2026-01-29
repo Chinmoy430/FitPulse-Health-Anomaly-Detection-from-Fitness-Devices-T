@@ -1,6 +1,3 @@
-from utils.ui import load_premium_css
-load_premium_css()
-
 import streamlit as st
 import pandas as pd
 
@@ -47,7 +44,6 @@ if uploaded is not None:
     st.session_state.module2_out = module2_out
     st.sidebar.success("✅ Pipeline completed!")
 
-# ✅ USER FILTER (Always visible if data exists)
 if st.session_state.df_final is not None:
     df_all = st.session_state.df_final
 

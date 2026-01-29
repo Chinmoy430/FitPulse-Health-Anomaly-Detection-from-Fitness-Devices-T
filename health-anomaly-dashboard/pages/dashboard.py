@@ -1,3 +1,6 @@
+from utils.ui import load_premium_css
+load_premium_css()
+
 import streamlit as st
 import numpy as np
 from utils.ui import kpi_card
