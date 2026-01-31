@@ -11,7 +11,6 @@ def run_pipeline(df_raw: pd.DataFrame, resample_rule: str = "1H"):
 
     df0 = df_raw.copy()
 
-    # ✅ If team already generated anomaly columns, USE THEM DIRECTLY
     anomaly_cols = [
         "Heart_Rate_anomaly",
         "Daily_Steps_anomaly",

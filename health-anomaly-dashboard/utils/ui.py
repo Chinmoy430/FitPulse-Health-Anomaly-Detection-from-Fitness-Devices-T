@@ -504,3 +504,5 @@ def kpi_card(title, value, sub=""):
         <div class="kpi-sub">{sub}</div>
     </div>
     """, unsafe_allow_html=True)
+
+
