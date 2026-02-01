@@ -1,7 +1,7 @@
 # FitPulse – Health Anomaly Detection from Fitness Devices
 
 Live Application Link:  
-https://fitpulse-health-anomaly-detection.streamlit.app/
+https://fitpulse-health-anomaly-detection-from-fitness-devices.streamlit.app/
 
 ---
 
@@ -117,7 +117,7 @@ Backend and Machine Learning:
 The application is deployed using Streamlit Community Cloud.
 
 Live URL:  
-https://fitpulse-health-anomaly-detection.streamlit.app/
+https://fitpulse-health-anomaly-detection-from-fitness-devices.streamlit.app/
 
 ---
 
