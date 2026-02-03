@@ -5,8 +5,11 @@ import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
 
-st.title("📊 Model Insights ")
+st.title("📊 Model Insights")
 
+# ==============================
+# ✅ PIPELINE CHECK
+# ==============================
 if st.session_state.get("module2_out") is None:
     st.warning("Run pipeline from Home page first.")
     st.stop()
@@ -15,7 +18,7 @@ out = st.session_state.module2_out
 df_all = st.session_state.get("df_final", None)
 
 # ==============================
-# ✅ USER FILTER (Same as Dashboard)
+# ✅ USER FILTER
 # ==============================
 st.markdown("### 👤 Select User")
 
@@ -37,72 +40,84 @@ else:
 st.caption(f"✅ Currently selected: **{selected_user}**")
 st.divider()
 
-
 # ==============================
-# ✅ PREMIUM KPIs
+# ✅ KPI METRICS
 # ==============================
-features_count = 0
-if isinstance(out, dict) and "features_df" in out and out["features_df"] is not None:
-    features_count = out["features_df"].shape[1]
+features_count = out["features_df"].shape[1] if out.get("features_df") is not None else 0
 
 clusters_count = 0
 noise_points = 0
-if isinstance(out, dict) and "clustering_df" in out and out["clustering_df"] is not None and len(out["clustering_df"]) > 0:
+if out.get("clustering_df") is not None and len(out["clustering_df"]) > 0:
     clusters = out["clustering_df"]["cluster"]
     clusters_count = len(set(clusters)) - (1 if -1 in set(clusters) else 0)
     noise_points = int((clusters == -1).sum())
 
-forecast_metrics = 0
-if isinstance(out, dict) and "prophet_forecasts" in out and out["prophet_forecasts"] is not None:
-    forecast_metrics = len(out["prophet_forecasts"].keys())
+forecast_metrics = len(out["prophet_forecasts"]) if out.get("prophet_forecasts") else 0
 
 c1, c2, c3 = st.columns(3)
-with c1:
-    st.metric("🧠 TSFresh Features", features_count)
-with c2:
-    st.metric("🧩 Clusters (DBSCAN)", clusters_count)
-with c3:
-    st.metric("📈 Prophet Metrics", forecast_metrics)
+c1.metric("🧠 TSFresh Features", features_count)
+c2.metric("🧩 Clusters (DBSCAN)", clusters_count)
+c3.metric("📈 Prophet Metrics", forecast_metrics)
 
 st.divider()
 
 # ==============================
-# ✅ Tabs with REAL Visuals
+# ✅ TABS
 # ==============================
-tab1, tab2, tab3 = st.tabs(["🧠 TSFresh (Top Features)", "📈 Prophet (Forecast Plot)", "🧩 Clustering (Scatter Plot)"])
+tab1, tab2, tab3 = st.tabs([
+    "🧠 TSFresh (Top Features)",
+    "📈 Prophet (Forecast Plot)",
+    "🧩 Clustering (Scatter Plot)"
+])
 
-
-# ---------------- TAB 1: TSFresh Top Features ----------------
+# =========================================================
+# TAB 1: TSFresh — RELEVANT FEATURES ONLY (FIXED)
+# =========================================================
 with tab1:
-    st.markdown("### 🧠 Top Extracted Features (Preview)")
+    st.markdown("### 🧠 Selected TSFresh Features")
 
-    if not (isinstance(out, dict) and "features_df" in out):
-        st.warning("TSFresh output not found in module2_out.")
+    features_df = out["features_df"].copy()
+
+    required_patterns = [
+        "__c3__lag_1",
+        "__c3__lag_2",
+        "__c3__lag_3",
+        "__time_reversal_asymmetry_statistic__lag_2",
+        "__time_reversal_asymmetry_statistic__lag_3"
+    ]
+
+    selected_features = [
+        col for col in features_df.columns
+        if any(pat in col for pat in required_patterns)
+    ]
+
+    if len(selected_features) == 0:
+        st.error("Required TSFresh features not found. Check dataset.")
     else:
-        features_df = out["features_df"].copy()
+        var_series = features_df[selected_features].var().sort_values(ascending=False)
+        chart_df = var_series.reset_index()
+        chart_df.columns = ["feature", "variance"]
 
-        # Show top features by variance (quick meaningful ranking)
-        numeric_cols = [c for c in features_df.columns if c not in ["Person_ID", "Metric"]]
-        numeric_cols = [c for c in numeric_cols if str(features_df[c].dtype) != "object"]
+        fig = px.bar(
+            chart_df,
+            x="variance",
+            y="feature",
+            orientation="h",
+            title="TSFresh Features (By Variance)"
+        )
 
-        if len(numeric_cols) == 0:
-            st.info("No numeric features found to visualize.")
-        else:
-            var_series = features_df[numeric_cols].var().sort_values(ascending=False).head(15)
-            chart_df = var_series.reset_index()
-            chart_df.columns = ["feature", "variance"]
+        fig.update_layout(template="plotly_white", height=420)
+        st.plotly_chart(fig, use_container_width=True)
 
-            fig = px.bar(chart_df, x="variance", y="feature", orientation="h",
-                         title="Top 15 TSFresh Features (by Variance)")
+        with st.expander("Show Selected Feature Values "):
+            st.dataframe(
+                features_df[selected_features].head(25),
+                use_container_width=True
+            )
 
-            fig.update_layout(template="plotly_white", height=520)
-            st.plotly_chart(fig, use_container_width=True)
-
-            with st.expander("Show TSFresh Feature Table (first 25 rows)"):
-                st.dataframe(features_df.head(25), use_container_width=True)
-
-
-# ---------------- TAB 2: Prophet Forecast Plot ----------------
+# =========================================================
+# TAB 2: Prophet Forecast
+# =========================================================
 with tab2:
     st.markdown("### 📈 Prophet Forecast Visualization")
 
@@ -163,8 +178,9 @@ with tab2:
                     use_container_width=True
                 )
 
-
-# ---------------- TAB 3: Clustering Scatter Plot ----------------
+# =========================================================
+# TAB 3: DBSCAN Clustering
+# =========================================================
 with tab3:
     st.markdown("### 🧩 DBSCAN Clustering Visualization")
 
